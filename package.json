@@ -1,0 +1,35 @@
+{
+  "name": "app-soccer-matches",
+  "version": "1.0.0",
+  "description": "**Soccer Session Manager** is a robust application for managing informal soccer matches (\"pickup games\"). The system allows organizing sessions, managing teams and players, recording real-time match events, applying configurable complex rules, and exporting detailed statistics.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andresieiro2/app-soccer-matches.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/andresieiro2/app-soccer-matches/issues"
+  },
+  "homepage": "https://github.com/andresieiro2/app-soccer-matches#readme",
+  "dependencies": {
+    "@types/node": "^25.4.0",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.57.0",
+    "@typescript-eslint/parser": "^8.57.0",
+    "eslint": "^10.0.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.1"
+  }
+}
