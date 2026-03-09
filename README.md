@@ -132,7 +132,7 @@
 ```
 src/
 ├── domain/
-│   ├── entities/           # Entidades do domínio
+│   ├── entities/           # Domain entities
 │   │   ├── Group.ts
 │   │   ├── GroupPlayer.ts
 │   │   ├── GroupSettings.ts
@@ -141,61 +141,61 @@ src/
 │   │   ├── SessionPlayer.ts
 │   │   ├── Match.ts
 │   │   └── MatchEvent.ts
-│   ├── enums/              # Enumerações
+│   ├── enums/              # Enumerations
 │   │   ├── PlayerType.ts
 │   │   ├── MatchEventType.ts
 │   │   └── DrawResult.ts
-│   ├── interfaces/         # Contratos de repositórios
-│   └── services/           # Serviços de domínio
+│   ├── interfaces/         # Repository contracts
+│   └── services/           # Domain services
 ├── application/
-│   ├── use-cases/          # Casos de uso
+│   ├── use-cases/          # Use cases
 │   │   ├── session/
 │   │   ├── match/
 │   │   └── statistics/
-│   └── services/           # Serviços de aplicação
+│   └── services/           # Application services
 ├── infrastructure/
-│   ├── repositories/       # Implementações concretas
+│   ├── repositories/       # Concrete implementations
 │   │   ├── typeorm/
-│   │   └── in-memory/      # Para testes
-│   ├── persistence/        # Configuração de banco
-│   └── external/           # Serviços externos
+│   │   └── in-memory/      # For testing
+│   ├── persistence/        # Database configuration
+│   └── external/           # External services
 ├── presentation/
-│   ├── cli/                # Interface linha de comando
-│   ├── web/                # Interface web (futuro)
-│   └── api/                # REST API (futuro)
-└── config/                 # Configurações
+│   ├── cli/                # Command line interface
+│   ├── web/                # Web interface (future)
+│   └── api/                # REST API (future)
+└── config/                 # Configurations
 ```
 
-## 🏪 Domínio & Entidades
+## 🏪 Domain & Entities
 
-### **Entidades Fundamentais**
+### **Core Entities**
 
-#### **Group** (Agregado Raiz)
+#### **Group** (Aggregate Root)
 ```typescript
 class Group {
   id: string
   name: string
-  players: GroupPlayer[]        // Jogadores permanentes
-  settings: GroupSettings       // Configurações do grupo
-  sessions: Session[]           // Histórico de sessões
+  players: GroupPlayer[]        // Permanent players
+  settings: GroupSettings       // Group configuration
+  sessions: Session[]           // Session history
   createdAt: Date
 }
 ```
 
-#### **GroupSettings** (Configuração Global)
+#### **GroupSettings** (Global Configuration)
 ```typescript
 class GroupSettings {
   id: string
   groupId: string
-  teamSize: number                    // Ex: 5 (futsal), 11 (campo)
+  teamSize: number                    // Ex: 5 (futsal), 11 (field)
   maxMatchDurationMinutes: number     // Ex: 15, 20, 30 min
-  maxGoals: number                    // Ex: 3, 5 gols
-  maxConsecutiveWins: number          // Ex: 2, 3 vitórias seguidas
-  drawRule: DrawRule                  // Como resolver empates
+  maxGoals: number                    // Ex: 3, 5 goals
+  maxConsecutiveWins: number          // Ex: 2, 3 consecutive wins
+  drawRule: DrawRule                  // How to resolve draws
 }
 ```
 
-#### **Session** (Agregado Raiz - Sessão de Jogo)
+#### **Session** (Aggregate Root - Game Session)
 ```typescript
 class Session {
   id: string
@@ -204,7 +204,7 @@ class Session {
   players: SessionPlayer[]
   matches: Match[]
   
-  // 📸 SNAPSHOT DE REGRAS (Imutável durante a sessão)
+  // 📸 RULE SNAPSHOT (Immutable during session)
   teamSizeSnapshot: number
   maxMatchDurationMinutesSnapshot: number
   maxGoalsSnapshot: number
@@ -217,42 +217,42 @@ class Session {
 }
 ```
 
-#### **SessionTeam** (Time da Sessão)
+#### **SessionTeam** (Session Team)
 ```typescript
 class SessionTeam {
   id: string
   sessionId: string
   teamName: string
-  queuePosition: number     // Usado apenas para 3+ times
+  queuePosition: number     // Used only for 3+ teams
   createdAt: Date
 }
 ```
 
-#### **SessionPlayer** (Jogador na Sessão)
+#### **SessionPlayer** (Session Player)
 ```typescript
 class SessionPlayer {
   id: string
   sessionId: string
   sessionTeamId: string
-  groupPlayerId?: string    // NULL para fill players
+  groupPlayerId?: string    // NULL for fill players
   playerType: PlayerType    // 'session_player' | 'fill_player'
   checkInAt: Date
   checkOutAt?: Date
 }
 ```
 
-#### **Match** (Agregado Raiz - Partida)
+#### **Match** (Aggregate Root - Match)
 ```typescript
 class Match {
   id: string
   sessionId: string
-  sequenceNumber: number    // Posição na timeline
+  sequenceNumber: number    // Position in timeline
   homeTeamId: string
   challengerTeamId: string
   
-  // 📊 SCORES CALCULADOS AUTOMATICAMENTE
-  homeScore: number         // Derivado de eventos 'goal'
-  challengerScore: number   // Derivado de eventos 'goal'
+  // 📊 AUTOMATICALLY CALCULATED SCORES
+  homeScore: number         // Derived from 'goal' events
+  challengerScore: number   // Derived from 'goal' events
   drawResult?: DrawResult   // 'home_stays' | 'challenger_stays'
   
   events: MatchEvent[]
@@ -261,24 +261,24 @@ class Match {
 }
 ```
 
-#### **MatchEvent** (Evento da Partida)
+#### **MatchEvent** (Match Event)
 ```typescript
 class MatchEvent {
   id: string
   matchId: string
-  sessionPlayerId: string   // Quem fez a ação
-  assistPlayerId?: string   // Quem deu assistência (só para gols)
+  sessionPlayerId: string   // Who performed the action
+  assistPlayerId?: string   // Who gave the assist (goals only)
   eventType: MatchEventType // 'goal' | 'yellow_card' | 'red_card'
-  createdAt: Date          // Ordem cronológica dos eventos
+  createdAt: Date          // Chronological order of events
 }
 ```
 
-### **Enumerações Importantes**
+### **Important Enumerations**
 
 ```typescript
 enum PlayerType {
-  SESSION_PLAYER = 'session_player',    // Jogador oficial do grupo
-  FILL_PLAYER = 'fill_player'           // Jogador temporário
+  SESSION_PLAYER = 'session_player',    // Official group player
+  FILL_PLAYER = 'fill_player'           // Temporary player
 }
 
 enum MatchEventType {
@@ -288,188 +288,188 @@ enum MatchEventType {
 }
 
 enum DrawRule {
-  HOME_STAYS = 'home_stays',            // Time da casa fica
-  CHALLENGER_STAYS = 'challenger_stays', // Time visitante fica
-  MANUAL_SELECTION = 'manual_selection', // Usuário escolhe
-  COIN_TOSS = 'coin_toss'               // Sorteio automático
+  HOME_STAYS = 'home_stays',            // Home team stays
+  CHALLENGER_STAYS = 'challenger_stays', // Visiting team stays
+  MANUAL_SELECTION = 'manual_selection', // User chooses
+  COIN_TOSS = 'coin_toss'               // Automatic draw
 }
 ```
 
-## ⚙️ Regras de Negócio Detalhadas
+## ⚙️ Detailed Business Rules
 
-### **📋 1. Configuração e Snapshots**
+### **📋 1. Configuration and Snapshots**
 
-#### **Regras de Configuração Global (GroupSettings)**
-- `teamSize`: Tamanho fixo dos times (ex: 5 para futsal, 11 para campo)
-- `maxMatchDurationMinutes`: Duração máxima das partidas
-- `maxGoals`: Número de gols para finalizar partida
-- `maxConsecutiveWins`: Limite de vitórias consecutivas
-- `drawRule`: Como resolver empates em sistemas de rotação
+#### **Global Configuration Rules (GroupSettings)**
+- `teamSize`: Fixed team size (ex: 5 for futsal, 11 for field)
+- `maxMatchDurationMinutes`: Maximum match duration
+- `maxGoals`: Number of goals to end match
+- `maxConsecutiveWins`: Consecutive wins limit
+- `drawRule`: How to resolve draws in rotation systems
 
-#### **Sistema de Snapshots Imutáveis**
+#### **Immutable Snapshot System**
 ```typescript
-// ✅ Ao criar sessão: regras são copiadas e "congeladas"
+// ✅ When creating session: rules are copied and "frozen"
 const session = new Session({
   teamSizeSnapshot: group.settings.teamSize,
   maxGoalsSnapshot: group.settings.maxGoals,
-  // ... outros snapshots
+  // ... other snapshots
 });
 
-// ❌ Mudanças futuras no grupo NÃO afetam sessões existentes
-group.settings.maxGoals = 10;  // Não afeta sessões já criadas
+// ❌ Future group changes DO NOT affect existing sessions
+group.settings.maxGoals = 10;  // Does not affect existing sessions
 ```
 
-### **👥 2. Sistema Dual de Jogadores**
+### **👥 2. Dual Player System**
 
-#### **Session Players (Jogadores Oficiais)**
-- ✅ Referência a `GroupPlayer` existente
-- ✅ Incluídos em estatísticas permanentes
-- ✅ Incluídos em exportações XLS
-- ✅ Podem trocar de time em futuras sessões
-- ✅ Histórico permanente no grupo
+#### **Session Players (Official Players)**
+- ✅ Reference to existing `GroupPlayer`
+- ✅ Included in permanent statistics
+- ✅ Included in XLS exports
+- ✅ Can switch teams in future sessions
+- ✅ Permanent history in group
 
-#### **Fill Players (Jogadores Temporários)**
+#### **Fill Players (Temporary Players)**
 ```typescript
-// Exemplo de fill players na interface
+// Example of fill players in interface
 interface TeamDisplay {
   players: [
-    "João Silva",      // session_player
+    "John Silva",      // session_player
     "Maria Santos",    // session_player
-    "completa 1",      // fill_player
-    "completa 2"       // fill_player
+    "fill 1",          // fill_player
+    "fill 2"           // fill_player
   ]
 }
 ```
 
-**Características dos Fill Players:**
-- ❌ **NÃO** referenciam `GroupPlayer`
-- ✅ Podem marcar gols e dar assistências
-- ✅ Podem receber cartões
-- ❌ **NÃO** aparecem em estatísticas permanentes
-- ❌ **NÃO** são exportados para XLS
-- ❌ **NÃO** se tornam jogadores permanentes
-- 🔒 Fixos ao time onde foram criados
+**Fill Player Characteristics:**
+- ❌ **DO NOT** reference `GroupPlayer`
+- ✅ Can score goals and give assists
+- ✅ Can receive cards
+- ❌ **DO NOT** appear in permanent statistics
+- ❌ **NOT** exported to XLS
+- ❌ **DO NOT** become permanent players
+- 🔒 Fixed to the team where they were created
 
-### **🔄 3. Fluxos de Partida**
+### **🔄 3. Match Flows**
 
-#### **Cenário: 2 Times**
+#### **Scenario: 2 Teams**
 ```
-Time A ⚽ Time B
-      ↓ (Partida termina)
-Time A ⚽ Time B  (Mesmos times, sem rotação)
-```
-
-**Regras:**
-- ❌ Sem sistema de fila
-- ❌ Sem regras de rotação  
-- ❌ Regras de empate não se aplicam
-- ✅ Partida termina e reinicia com mesmos times
-
-#### **Cenário: 3+ Times (Sistema de Rotação)**
-```
-Quadra: [Time A] vs [Time B]
-Fila:   Time C → Time D → Time E
-
-1. Time A vence Time B
-2. Time B sai da quadra
-3. Time C entra para jogar contra Time A
-4. Time B vai para o final da fila
-
-Resultado:
-Quadra: [Time A] vs [Time C]  
-Fila:   Time D → Time E → Time B
+Team A ⚽ Team B
+      ↓ (Match ends)
+Team A ⚽ Team B  (Same teams, no rotation)
 ```
 
-**Regras de Rotação:**
-- ✅ Fila automática baseada em `queuePosition`
-- ✅ Time vencedor permanece na quadra
-- ✅ Time perdedor vai para final da fila
-- ✅ Próximo time da fila entra
-- ✅ Empates resolvidos por `drawRule`
+**Rules:**
+- ❌ No queue system
+- ❌ No rotation rules  
+- ❌ Draw rules do not apply
+- ✅ Match ends and restarts with same teams
 
-### **⚖️ 4. Regras de Empate (3+ Times)**
+#### **Scenario: 3+ Teams (Rotation System)**
+```
+Court: [Team A] vs [Team B]
+Queue:  Team C → Team D → Team E
+
+1. Team A beats Team B
+2. Team B leaves the court
+3. Team C enters to play against Team A
+4. Team B goes to end of queue
+
+Result:
+Court: [Team A] vs [Team C]  
+Queue:  Team D → Team E → Team B
+```
+
+**Rotation Rules:**
+- ✅ Automatic queue based on `queuePosition`
+- ✅ Winning team stays on court
+- ✅ Losing team goes to end of queue
+- ✅ Next team in queue enters
+- ✅ Draws resolved by `drawRule`
+
+### **⚖️ 4. Draw Rules (3+ Teams)**
 
 #### **DrawRule: HOME_STAYS**
 ```
-Time Casa (A) [2] x [2] Time Visitante (B)
-→ Time A permanece, Time B sai
-→ Próximo: Time A vs Time C
+Home Team (A) [2] x [2] Visiting Team (B)
+→ Team A stays, Team B leaves
+→ Next: Team A vs Team C
 ```
 
 #### **DrawRule: CHALLENGER_STAYS**
 ```
-Time Casa (A) [2] x [2] Time Visitante (B)  
-→ Time B permanece, Time A sai
-→ Próximo: Time B vs Time C
+Home Team (A) [2] x [2] Visiting Team (B)  
+→ Team B stays, Team A leaves
+→ Next: Team B vs Team C
 ```
 
 #### **DrawRule: MANUAL_SELECTION**
 ```
-Time Casa (A) [2] x [2] Time Visitante (B)
-→ Interface pergunta: "Quem permanece?"
-→ Usuário escolhe A ou B
+Home Team (A) [2] x [2] Visiting Team (B)
+→ Interface asks: "Who stays?"
+→ User chooses A or B
 ```
 
 #### **DrawRule: COIN_TOSS**
 ```
-Time Casa (A) [2] x [2] Time Visitante (B)
-→ Sistema sorteia automaticamente
-→ Resultado salvo como drawResult
+Home Team (A) [2] x [2] Visiting Team (B)
+→ System automatically draws
+→ Result saved as drawResult
 ```
 
-### **🏆 5. Regra de Vitórias Consecutivas**
+### **🏆 5. Consecutive Wins Rule**
 
-#### **Cenário: 3 Times**
+#### **Scenario: 3 Teams**
 ```
-Inicial:
-Quadra: [Time A] vs [Time B]
-Fila:   Time C
+Initial:
+Court: [Team A] vs [Team B]
+Queue:  Team C
 
-Time A atinge maxConsecutiveWins:
-→ Time A sai (forçado)
-→ Time B também sai  
-→ Próxima: Time C vs Time ? (próximo da fila)
-```
-
-#### **Cenário: 4+ Times**
-```
-Inicial:
-Quadra: [Time A] vs [Time B]
-Fila:   Time C → Time D
-
-Time A atinge maxConsecutiveWins:
-→ Ambos times saem da quadra
-→ Próxima: Time C vs Time D
-→ Fila fica: Time A → Time B (ambos no final)
+Team A reaches maxConsecutiveWins:
+→ Team A leaves (forced)
+→ Team B also leaves  
+→ Next: Team C vs Team ? (next in queue)
 ```
 
-### **📝 6. Eventos e Validações**
+#### **Scenario: 4+ Teams**
+```
+Initial:
+Court: [Team A] vs [Team B]
+Queue:  Team C → Team D
 
-#### **Eventos de Gol**
+Team A reaches maxConsecutiveWins:
+→ Both teams leave the court
+→ Next: Team C vs Team D
+→ Queue becomes: Team A → Team B (both at end)
+```
+
+### **📝 6. Events and Validations**
+
+#### **Goal Events**
 ```typescript
-// ✅ Gol válido
-const golEvent = {
+// ✅ Valid goal
+const goalEvent = {
   eventType: 'goal',
-  sessionPlayerId: 'player-123',    // Time A
-  assistPlayerId: 'player-456'      // Time A (mesmo time)
+  sessionPlayerId: 'player-123',    // Team A
+  assistPlayerId: 'player-456'      // Team A (same team)
 };
 
-// ❌ Validações que falham
-const golInvalido = {
-  sessionPlayerId: 'player-123',    // Time A  
-  assistPlayerId: 'player-789'      // Time B (time diferente)
+// ❌ Invalid validations
+const invalidGoal = {
+  sessionPlayerId: 'player-123',    // Team A  
+  assistPlayerId: 'player-789'      // Team B (different team)
 };
 ```
 
-**Regras de Validação:**
-- ✅ Assistência deve ser do mesmo time do gol
-- ❌ Assistência não pode ser do próprio jogador
-- ✅ Jogador deve estar em um dos times da partida
-- ❌ Jogadores expulsos não podem registrar eventos
+**Validation Rules:**
+- ✅ Assist must be from same team as goal
+- ❌ Assist cannot be from goal scorer
+- ✅ Player must be on one of the teams playing
+- ❌ Ejected players cannot register events
 
-#### **Sistema de Cartões**
+#### **Card System**
 ```typescript
-// Timeline automática de cartões
+// Automatic card timeline
 [
   { eventType: 'yellow_card', playerId: 'player-123', timestamp: '10:00' },
   { eventType: 'yellow_card', playerId: 'player-123', timestamp: '15:00' },
@@ -477,44 +477,44 @@ const golInvalido = {
 ]
 ```
 
-**Regras:**
-- ✅ Dois amarelos = vermelho automático
-- ✅ Jogador expulso fica inelegível para novos eventos
-- ✅ Interface deve esconder jogadores expulsos
-- ❌ Validação é apenas na UI, não no domínio
+**Rules:**
+- ✅ Two yellows = automatic red
+- ✅ Ejected player becomes ineligible for new events
+- ✅ Interface should hide ejected players
+- ❌ Validation is UI-only, not in domain
 
-### **🛠️ 7. Timeline e Edição Histórica**
+### **🛠️ 7. Timeline and Historical Editing**
 
-#### **Operações Permitidas**
+#### **Allowed Operations**
 ```typescript
-// ✅ Inserir partida no meio da timeline
+// ✅ Insert match in middle of timeline
 matches.insertAt(position: 2, newMatch);
 
-// ✅ Deletar partida histórica  
+// ✅ Delete historical match  
 matches.deleteAt(position: 3);
 
-// ✅ Mover partida
+// ✅ Move match
 matches.move(from: 5, to: 2);
 
-// ✅ Apenas sequenceNumber é recalculado
+// ✅ Only sequenceNumber is recalculated
 updateSequenceNumbers(); // 1, 2, 3, 4, 5...
 ```
 
-**Princípio Fundamental:**
-- ✅ **Apenas** `sequenceNumber` é recalculado
-- ❌ **Nenhuma** lógica de rotação é recalculada
-- ✅ Usuário tem **controle manual total**
-- ❌ Sistema **não** recomputa histórico automaticamente
+**Fundamental Principle:**
+- ✅ **Only** `sequenceNumber` is recalculated
+- ❌ **No** rotation logic is recalculated
+- ✅ User has **full manual control**
+- ❌ System **does not** recompute history automatically
 
-### **📊 8. Cálculo de Scores**
+### **📊 8. Score Calculation**
 
-#### **Derivação Automática**
+#### **Automatic Derivation**
 ```typescript
-// Match NÃO armazena scores diretamente
+// Match does NOT store scores directly
 class Match {
-  // ❌ homeScore: number  // Não existe como campo
+  // ❌ homeScore: number  // Does not exist as field
   
-  // ✅ Score calculado via eventos
+  // ✅ Score calculated via events
   get homeScore(): number {
     return this.events
       .filter(e => e.eventType === 'goal')
@@ -524,44 +524,44 @@ class Match {
 }
 ```
 
-**Regras Fundamentais:**
-- ✅ Scores **sempre** derivados de eventos de gol
-- ❌ Scores **nunca** editados manualmente
-- ✅ Consistência garantida automaticamente
-- ✅ Auditoria completa via events
+**Fundamental Rules:**
+- ✅ Scores **always** derived from goal events
+- ❌ Scores **never** manually edited
+- ✅ Consistency automatically guaranteed
+- ✅ Complete audit via events
 
-## 📊 Estatísticas e Exportação Avançada
+## 📊 Advanced Statistics and Export
 
-### **Inclusão/Exclusão de Dados**
+### **Data Inclusion/Exclusion**
 
-#### **✅ Incluídos nas Estatísticas**
+#### **✅ Included in Statistics**
 ```typescript
 const validPlayers = sessionPlayers.filter(
   player => player.playerType === PlayerType.SESSION_PLAYER
 );
 
-// Métricas calculadas para session_players:
+// Metrics calculated for session_players:
 interface PlayerStats {
-  goals: number;           // Gols marcados
-  assists: number;         // Assistências dadas  
-  yellowCards: number;     // Cartões amarelos
-  redCards: number;        // Cartões vermelhos
-  matchesPlayed: number;   // Partidas disputadas
-  wins: number;            // Vitórias
-  draws: number;           // Empates  
-  losses: number;          // Derrotas
-  winRate: number;         // Taxa de vitórias
+  goals: number;           // Goals scored
+  assists: number;         // Assists given  
+  yellowCards: number;     // Yellow cards
+  redCards: number;        // Red cards
+  matchesPlayed: number;   // Matches played
+  wins: number;            // Wins
+  draws: number;           // Draws  
+  losses: number;          // Losses
+  winRate: number;         // Win rate
 }
 ```
 
-#### **❌ Excluídos das Estatísticas**
-- **Fill players** - Jogadores temporários
-- Eventos de fill players (ainda existem para lógica de jogo)
-- Dados de jogadores que saíram do grupo
+#### **❌ Excluded from Statistics**
+- **Fill players** - Temporary players
+- Fill player events (still exist for game logic)
+- Data from players who left the group
 
-### **Export para Excel (XLS)**
+### **Excel Export (XLS)**
 
-#### **Estrutura do Relatório**
+#### **Report Structure**
 ```typescript
 interface ExcelReport {
   groupInfo: {
@@ -571,7 +571,7 @@ interface ExcelReport {
     period: { start: Date; end: Date; };
   };
   
-  playerStats: PlayerStats[];  // Apenas session_players
+  playerStats: PlayerStats[];  // Only session_players
   
   sessionSummaries: {
     sessionId: string;
@@ -591,180 +591,180 @@ interface ExcelReport {
 }
 ```
 
-#### **Regras de Exportação**
-- ✅ **Apenas** dados de `session_player`
-- ❌ **Fill players completamente omitidos**
-- ✅ Eventos de fill players **removidos** do histórico exportado
-- ✅ Scores **recalculados** sem eventos de fill players
-- ✅ Estatísticas **limpas** e **precisas**
+#### **Export Rules**
+- ✅ **Only** `session_player` data
+- ❌ **Fill players completely omitted**
+- ✅ Fill player events **removed** from exported history
+- ✅ Scores **recalculated** without fill player events
+- ✅ **Clean** and **accurate** statistics
 
-### **Casos de Uso de Estatísticas**
+### **Statistics Use Cases**
 
-#### **Ranking Individual**
+#### **Individual Ranking**
 ```typescript
 const ranking = players
   .sort((a, b) => {
-    // 1º critério: goals per match
+    // 1st criterion: goals per match
     const goalsA = a.goals / a.matchesPlayed;
     const goalsB = b.goals / b.matchesPlayed;
     if (goalsA !== goalsB) return goalsB - goalsA;
     
-    // 2º critério: win rate
+    // 2nd criterion: win rate
     if (a.winRate !== b.winRate) return b.winRate - a.winRate;
     
-    // 3º critério: total matches (experiência)
+    // 3rd criterion: total matches (experience)
     return b.matchesPlayed - a.matchesPlayed;
   });
 ```
 
-#### **Análise de Performance por Sessão**
+#### **Session Performance Analysis**
 ```typescript
 interface SessionAnalysis {
-  bestPerformer: string;     // Melhor jogador da sessão
-  fairPlay: string;          // Menos cartões
-  topScorer: string;         // Artilheiro da sessão
-  mostAssists: string;       // Maior assistente
-  longestWinStreak: {        // Maior sequência de vitórias
+  bestPerformer: string;     // Best session player
+  fairPlay: string;          // Fewest cards
+  topScorer: string;         // Session top scorer
+  mostAssists: string;       // Most assists
+  longestWinStreak: {        // Longest win streak
     team: string;
     matches: number;
   };
 }
 ```
 
-## 🚀 Casos de Uso Principais
+## 🚀 Main Use Cases
 
-### **👥 Gestão de Grupos**
-- `CreateGroup` - Criar novo grupo de futebol
-- `UpdateGroupSettings` - Configurar regras globais
-- `AddPlayerToGroup` - Adicionar jogador permanente
-- `RemovePlayerFromGroup` - Remover jogador (validar histórico)
-- `GetGroupStats` - Estatísticas gerais do grupo
+### **👥 Group Management**
+- `CreateGroup` - Create new soccer group
+- `UpdateGroupSettings` - Configure global rules
+- `AddPlayerToGroup` - Add permanent player
+- `RemovePlayerFromGroup` - Remove player (validate history)
+- `GetGroupStats` - General group statistics
 
-### **⚽ Gestão de Sessões**
-- `CreateSession` - Criar nova sessão com snapshot de regras
-- `ConfigureSessionTeams` - Definir times da sessão
-- `AddPlayerToSession` - Adicionar jogador oficial a sessão
-- `CreateFillPlayer` - Criar jogador temporário para completar time
-- `AssignPlayerToTeam` - Atribuir jogador a time específico
-- `StartSession` - Iniciar sessão (validar teams completos)
-- `EndSession` - Finalizar sessão e calcular estatísticas
-- `GetSessionSummary` - Resumo completo da sessão
+### **⚽ Session Management**
+- `CreateSession` - Create new session with rule snapshot
+- `ConfigureSessionTeams` - Define session teams
+- `AddPlayerToSession` - Add official player to session
+- `CreateFillPlayer` - Create temporary player to complete team
+- `AssignPlayerToTeam` - Assign player to specific team
+- `StartSession` - Start session (validate complete teams)
+- `EndSession` - End session and calculate statistics
+- `GetSessionSummary` - Complete session summary
 
-### **🎮 Gestão de Partidas**
+### **🎮 Match Management**
 
-#### **Fluxo Automático**
-- `StartNextMatch` - Iniciar próxima partida (rotação automática)
-- `EndCurrentMatch` - Finalizar partida atual
-- `ApplyDrawRule` - Resolver empate conforme configuração
-- `CheckConsecutiveWins` - Verificar limite de vitórias seguidas
-- `RotateQueue` - Executar rotação de times (3+ teams)
+#### **Automatic Flow**
+- `StartNextMatch` - Start next match (automatic rotation)
+- `EndCurrentMatch` - End current match
+- `ApplyDrawRule` - Resolve draw according to configuration
+- `CheckConsecutiveWins` - Check consecutive wins limit
+- `RotateQueue` - Execute team rotation (3+ teams)
 
-#### **Gestão Manual**
-- `CreateManualMatch` - Inserir partida em posição específica
-- `DeleteMatch` - Remover partida do histórico
-- `MoveMatch` - Reposicionar partida na timeline
-- `ReorderMatches` - Recalcular sequenceNumbers
-- `UpdateMatchTeams` - Alterar times de partida específica
+#### **Manual Management**
+- `CreateManualMatch` - Insert match at specific position
+- `DeleteMatch` - Remove match from history
+- `MoveMatch` - Reposition match in timeline
+- `ReorderMatches` - Recalculate sequenceNumbers
+- `UpdateMatchTeams` - Change teams for specific match
 
-### **📝 Gestão de Eventos**
+### **📝 Event Management**
 
-#### **Eventos de Jogo**
-- `RecordGoal` - Registrar gol com assistência opcional
-- `RecordYellowCard` - Registrar cartão amarelo
-- `RecordRedCard` - Registrar cartão vermelho
-- `EditMatchEvent` - Modificar evento existente
-- `DeleteMatchEvent` - Remover evento (recalcula score)
+#### **Game Events**
+- `RecordGoal` - Record goal with optional assist
+- `RecordYellowCard` - Record yellow card
+- `RecordRedCard` - Record red card
+- `EditMatchEvent` - Modify existing event
+- `DeleteMatchEvent` - Remove event (recalculates score)
 
-#### **Validações**
-- `ValidatePlayerEligibility` - Verificar se pode registrar evento
-- `ValidateAssist` - Validar assistência (mesmo time, jogador diferente)
-- `CheckPlayerExpulsion` - Verificar se jogador está expulso
-- `AutoGenerateRedCard` - Gerar vermelho após 2 amarelos
+#### **Validations**
+- `ValidatePlayerEligibility` - Check if can register event
+- `ValidateAssist` - Validate assist (same team, different player)
+- `CheckPlayerExpulsion` - Check if player is ejected
+- `AutoGenerateRedCard` - Generate red after 2 yellows
 
-### **📊 Estatísticas e Relatórios**
+### **📊 Statistics and Reports**
 
-#### **Estatísticas Individuais**
-- `GeneratePlayerStats` - Estatísticas completas de jogador
-- `GetPlayerMatchHistory` - Histórico de partidas
-- `CalculatePlayerRanking` - Ranking por critérios
-- `GetPlayerPerformanceBySession` - Performance por sessão
+#### **Individual Statistics**
+- `GeneratePlayerStats` - Complete player statistics
+- `GetPlayerMatchHistory` - Player match history
+- `CalculatePlayerRanking` - Ranking by criteria
+- `GetPlayerPerformanceBySession` - Performance per session
 
-#### **Estatísticas de Grupo**
-- `GenerateGroupStats` - Estatísticas gerais do grupo
-- `GetMostActivePlayer` - Jogador mais ativo
-- `GetTopScorer` - Artilheiro geral
-- `GetFairPlayRanking` - Ranking de fair play
+#### **Group Statistics**
+- `GenerateGroupStats` - General group statistics
+- `GetMostActivePlayer` - Most active player
+- `GetTopScorer` - Overall top scorer
+- `GetFairPlayRanking` - Fair play ranking
 
-#### **Exportação**
-- `ExportToXLS` - Exportar relatório Excel (sem fill players)
-- `ExportSessionSummary` - Resumo de sessão específica
-- `ExportPlayerReport` - Relatório individual de jogador
-- `ExportTeamComparison` - Comparação entre times/períodos
+#### **Export**
+- `ExportToXLS` - Export Excel report (no fill players)
+- `ExportSessionSummary` - Specific session summary
+- `ExportPlayerReport` - Individual player report
+- `ExportTeamComparison` - Team/period comparison
 
-### **🔧 Casos de Uso Técnicos**
+### **🔧 Technical Use Cases**
 
-#### **Integridade de Dados**
-- `RecalculateMatchScores` - Recalcular scores via eventos
-- `ValidateSessionIntegrity` - Verificar consistência dos dados
-- `FixSequenceNumbers` - Corrigir numeração de partidas
-- `AuditMatchEvents` - Auditoria de eventos suspeitos
+#### **Data Integrity**
+- `RecalculateMatchScores` - Recalculate scores via events
+- `ValidateSessionIntegrity` - Check data consistency
+- `FixSequenceNumbers` - Fix match numbering
+- `AuditMatchEvents` - Audit suspicious events
 
 #### **Performance**
-- `CachePlayerStats` - Cache de estatísticas frequentes
-- `OptimizeEventQueries` - Otimizar consultas de eventos
-- `ArchiveOldSessions` - Arquivar sessões antigas
-- `CleanupFillPlayers` - Limpeza de fill players órfãos
+- `CachePlayerStats` - Cache frequent statistics
+- `OptimizeEventQueries` - Optimize event queries
+- `ArchiveOldSessions` - Archive old sessions
+- `CleanupFillPlayers` - Cleanup orphaned fill players
 
-### **🎯 Fluxos Completos de Uso**
+### **🎯 Complete Usage Flows**
 
-#### **Fluxo: Criar Nova Sessão**
+#### **Flow: Create New Session**
 ```typescript
-// 1. Criar sessão
+// 1. Create session
 const session = await CreateSession({
   groupId: 'group-123',
-  teamNames: ['Time A', 'Time B', 'Time C']
+  teamNames: ['Team A', 'Team B', 'Team C']
 });
 
-// 2. Configurar times
+// 2. Configure teams
 await ConfigureSessionTeams(sessionId, {
-  'Time A': ['player1', 'player2', 'player3'],
-  'Time B': ['player4', 'player5'], // Incompleto
-  'Time C': ['player6', 'player7', 'player8']
+  'Team A': ['player1', 'player2', 'player3'],
+  'Team B': ['player4', 'player5'], // Incomplete
+  'Team C': ['player6', 'player7', 'player8']
 });
 
-// 3. Completar times com fill players  
-await CreateFillPlayer(sessionId, 'Time B', 'completa 1');
+// 3. Complete teams with fill players  
+await CreateFillPlayer(sessionId, 'Team B', 'fill 1');
 
-// 4. Validar e iniciar
+// 4. Validate and start
 await StartSession(sessionId);
 ```
 
-#### **Fluxo: Registrar Partida Completa**
+#### **Flow: Record Complete Match**
 ```typescript
-// 1. Iniciar partida
+// 1. Start match
 const match = await StartNextMatch(sessionId);
 
-// 2. Registrar eventos
-await RecordGoal(matchId, 'player1', 'player2'); // Gol + assist
+// 2. Record events
+await RecordGoal(matchId, 'player1', 'player2'); // Goal + assist
 await RecordYellowCard(matchId, 'player4');
 await RecordGoal(matchId, 'player3');
 
-// 3. Finalizar partida
+// 3. End match
 await EndCurrentMatch(matchId);
 
-// 4. Sistema aplica rotação automaticamente
-// Time vencedor fica, perdedor sai, próximo entra
+// 4. System applies rotation automatically
+// Winner stays, loser leaves, next enters
 ```
 
-#### **Fluxo: Exportar Relatório**
+#### **Flow: Export Report**
 ```typescript
-// 1. Gerar estatísticas limpas (sem fill players)
+// 1. Generate clean statistics (no fill players)
 const stats = await GeneratePlayerStats(groupId, {
   excludeFillPlayers: true,
   dateRange: { start: '2024-01-01', end: '2024-12-31' }
 });
 
-// 2. Exportar para Excel
+// 2. Export to Excel
 const excelFile = await ExportToXLS(groupId, {
   includeMatchDetails: true,
   includeEventTimeline: true,
@@ -772,9 +772,9 @@ const excelFile = await ExportToXLS(groupId, {
 });
 ```
 
-## 🧪 Estratégia de Testes
+## 🧪 Testing Strategy
 
-### **Unit Tests - Domínio**
+### **Unit Tests - Domain**
 
 #### **Entities & Business Rules**
 ```typescript
@@ -851,7 +851,7 @@ describe('Timeline Editing', () => {
 });
 ```
 
-### **Repository Tests - Infraestrutura**
+### **Repository Tests - Infrastructure**
 
 #### **Data Persistence**
 ```typescript
@@ -971,168 +971,169 @@ export class TestFactories {
     // Creates matches with realistic event distributions
   }
 }
+```
 
-## 📈 Roadmap e Expansões Futuras
+## 📈 Roadmap and Future Expansion
 
-### **🚀 Fase 1: MVP Core (Q1 2026)**
-- ✅ **Domain Layer Completo** - Todas entidades e regras
-- ✅ **CLI Interface** - Interface de linha de comando funcional
-- ✅ **SQLite Database** - Persistência local
-- ✅ **Core Use Cases** - Gestão básica de sessões
-- ✅ **Fill Players System** - Sistema completo de jogadores temporários
-- ✅ **Basic Statistics** - Estatísticas fundamentais
-- ✅ **XLS Export** - Exportação básica para Excel
+### **🚀 Phase 1: MVP Core (Q1 2026)**
+- ✅ **Complete Domain Layer** - All entities and rules
+- ✅ **CLI Interface** - Functional command line interface
+- ✅ **SQLite Database** - Local persistence
+- ✅ **Core Use Cases** - Basic session management
+- ✅ **Fill Players System** - Complete temporary player system
+- ✅ **Basic Statistics** - Fundamental statistics
+- ✅ **XLS Export** - Basic Excel export
 
-### **🔄 Fase 2: Advanced Features (Q2 2026)**
-- 🔄 **Timeline Editing** - Sistema completo de edição histórica
-- 🔄 **Advanced Rotation** - Rotação inteligente com múltiplas estratégias
-- 🔄 **Real-time Validation** - Validações em tempo real
-- 🔄 **Performance Optimization** - Cache e otimizações
-- 🔄 **Advanced Statistics** - Métricas avançadas e rankings
-- 🔄 **Data Import/Export** - Backup e sincronização
+### **🔄 Phase 2: Advanced Features (Q2 2026)**
+- 🔄 **Timeline Editing** - Complete historical editing system
+- 🔄 **Advanced Rotation** - Smart rotation with multiple strategies
+- 🔄 **Real-time Validation** - Real-time validations
+- 🔄 **Performance Optimization** - Caching and optimizations
+- 🔄 **Advanced Statistics** - Advanced metrics and rankings
+- 🔄 **Data Import/Export** - Backup and synchronization
 
-### **🌐 Fase 3: Web Platform (Q3 2026)**
-- 📱 **React Web Interface** - Interface web moderna
-- 🔐 **Authentication System** - Sistema de usuários
-- ☁️ **Cloud Database** - Migração PostgreSQL
-- 🔄 **Real-time Updates** - WebSocket para updates live
-- 📊 **Interactive Dashboards** - Dashboards avançados
-- 🎮 **Match Live Tracking** - Acompanhamento em tempo real
+### **🌐 Phase 3: Web Platform (Q3 2026)**
+- 📱 **React Web Interface** - Modern web interface
+- 🔐 **Authentication System** - User system
+- ☁️ **Cloud Database** - PostgreSQL migration
+- 🔄 **Real-time Updates** - WebSocket for live updates
+- 📊 **Interactive Dashboards** - Advanced dashboards
+- 🎮 **Match Live Tracking** - Real-time match tracking
 
-### **📱 Fase 4: Mobile Experience (Q4 2026)**
-- 📱 **React Native App** - Aplicativo mobile nativo
-- 📍 **Geolocation** - Localização de quadras
-- 🔔 **Push Notifications** - Notificações de jogos
-- 📷 **Photo Integration** - Fotos de jogos e times
-- 💬 **In-app Chat** - Chat integrado para grupos
-- 📅 **Calendar Integration** - Calendário de sessões
+### **📱 Phase 4: Mobile Experience (Q4 2026)**
+- 📱 **React Native App** - Native mobile app
+- 📍 **Geolocation** - Court location features
+- 🔔 **Push Notifications** - Game notifications
+- 📷 **Photo Integration** - Game and team photos
+- 💬 **In-app Chat** - Integrated group chat
+- 📅 **Calendar Integration** - Session calendar
 
-### **🏆 Fase 5: Advanced Features (2027)**
+### **🏆 Phase 5: Advanced Features (2027)**
 
-#### **Sistema de Competições**
-- 🏆 **Tournament Mode** - Sistema de torneios
-- 🏅 **Championship System** - Campeonatos entre grupos
-- 🎖️ **Achievement System** - Sistema de conquistas
-- 📊 **Advanced Analytics** - Analytics avançados com IA
-- 🎯 **Performance Prediction** - Predição de performance
+#### **Competition System**
+- 🏆 **Tournament Mode** - Tournament system
+- 🏅 **Championship System** - Inter-group championships
+- 🎖️ **Achievement System** - Achievement system
+- 📊 **Advanced Analytics** - AI-powered advanced analytics
+- 🎯 **Performance Prediction** - Performance prediction
 
-#### **Recursos Sociais**
-- 👥 **Social Features** - Perfis sociais e conexões
-- 📹 **Video Highlights** - Highlights automáticos
-- 📱 **Live Streaming** - Transmissão ao vivo
-- 🎮 **Gamification** - Elementos de gamificação
-- 🏆 **Global Rankings** - Rankings globais
+#### **Social Features**
+- 👥 **Social Features** - Social profiles and connections
+- 📹 **Video Highlights** - Automatic highlights
+- 📱 **Live Streaming** - Live streaming
+- 🎮 **Gamification** - Gamification elements
+- 🏆 **Global Rankings** - Global rankings
 
-#### **Integrações Avançadas**
-- 💰 **Payment Integration** - Sistema de rachinha
-- 🏟️ **Venue Management** - Gestão de quadras
-- 📦 **Equipment Tracking** - Controle de equipamentos
-- 🩺 **Health Monitoring** - Monitoramento de saúde
-- 🤖 **AI Coach** - Treinador virtual com IA
+#### **Advanced Integrations**
+- 💰 **Payment Integration** - Cost splitting system
+- 🏟️ **Venue Management** - Court management
+- 📦 **Equipment Tracking** - Equipment tracking
+- 🩺 **Health Monitoring** - Health monitoring
+- 🤖 **AI Coach** - AI virtual coach
 
-### **🔧 Melhorias Técnicas Contínuas**
+### **🔧 Continuous Technical Improvements**
 
 #### **Performance & Scalability**
 ```typescript
-// Otimizações planejadas
+// Planned optimizations
 interface PerformanceGoals {
-  databaseQueries: 'Sub-100ms para 95% das consultas';
-  userInterface: 'Loading < 2s em conexões 3G';
-  realTimeUpdates: 'Latência < 500ms para updates';
-  dataExport: 'XLS com 10k+ registros em < 30s';
+  databaseQueries: 'Sub-100ms for 95% of queries';
+  userInterface: 'Loading < 2s on 3G connections';
+  realTimeUpdates: 'Latency < 500ms for updates';
+  dataExport: 'XLS with 10k+ records in < 30s';
 }
 ```
 
 #### **Security & Privacy**
-- 🔒 **Data Encryption** - Criptografia end-to-end
-- 🛡️ **Privacy Controls** - Controles de privacidade
-- 🔐 **GDPR Compliance** - Conformidade LGPD/GDPR
-- 🚨 **Audit Logging** - Logs de auditoria completos
-- 🔑 **Multi-factor Auth** - Autenticação multi-fator
+- 🔒 **Data Encryption** - End-to-end encryption
+- 🛡️ **Privacy Controls** - Privacy controls
+- 🔐 **GDPR Compliance** - GDPR/LGPD compliance
+- 🚨 **Audit Logging** - Complete audit logs
+- 🔑 **Multi-factor Auth** - Multi-factor authentication
 
 #### **Developer Experience**
-- 🧪 **Test Coverage 95%+** - Cobertura de testes alta
-- 📚 **API Documentation** - Documentação completa
-- 🔧 **Developer Tools** - Ferramentas de desenvolvimento
-- 🚀 **CI/CD Pipeline** - Pipeline de deploy automático
-- 📊 **Monitoring & Alerts** - Monitoramento em produção
+- 🧪 **Test Coverage 95%+** - High test coverage
+- 📚 **API Documentation** - Complete documentation
+- 🔧 **Developer Tools** - Development tools
+- 🚀 **CI/CD Pipeline** - Automated deploy pipeline
+- 📊 **Monitoring & Alerts** - Production monitoring
 
-### **💡 Ideias Inovadoras**
+### **💡 Innovative Ideas**
 
 #### **AI & Machine Learning**
-- 🤖 **Smart Team Balancing** - Balanceamento automático de times com IA
-- 📈 **Performance Analytics** - Análise de performance com ML
-- 🎯 **Match Prediction** - Predição de resultados
-- 🏃‍♂️ **Player Development** - Sugestões de melhoria
-- 📊 **Tactical Analysis** - Análise tática automática
+- 🤖 **Smart Team Balancing** - AI-powered automatic team balancing
+- 📈 **Performance Analytics** - ML performance analysis
+- 🎯 **Match Prediction** - Result prediction
+- 🏃‍♂️ **Player Development** - Improvement suggestions
+- 📊 **Tactical Analysis** - Automatic tactical analysis
 
 #### **IoT Integration**
-- ⌚ **Wearable Integration** - Integração com smartwatches
-- 🥅 **Smart Goals** - Traves inteligentes para detecção automática
-- 📡 **GPS Tracking** - Rastreamento GPS de jogadores
-- 📊 **Automatic Statistics** - Estatísticas automáticas via IoT
-- 🎥 **Automated Recording** - Gravação automática de partidas
+- ⌚ **Wearable Integration** - Smartwatch integration
+- 🥅 **Smart Goals** - Smart goalposts for automatic detection
+- 📡 **GPS Tracking** - GPS player tracking
+- 📊 **Automatic Statistics** - IoT-based automatic statistics
+- 🎥 **Automated Recording** - Automatic match recording
 
 #### **Extended Reality (AR/VR)**
-- 👓 **AR Match Overlay** - Sobreposição AR com estatísticas
-- 🥽 **VR Training** - Treinamento em realidade virtual
-- 📱 **AR Player Cards** - Cartas de jogadores em AR
-- 🎮 **Virtual Matches** - Partidas virtuais para treinamento
-- 📊 **3D Analytics** - Visualização 3D de dados
+- 👓 **AR Match Overlay** - AR overlay with statistics
+- 🥽 **VR Training** - Virtual reality training
+- 📱 **AR Player Cards** - AR player cards
+- 🎮 **Virtual Matches** - Virtual matches for training
+- 📊 **3D Analytics** - 3D data visualization
 
-### **🌍 Expansão Global**
+### **🌍 Global Expansion**
 
-#### **Localização**
-- 🌐 **Multi-language** - Suporte a múltiplas línguas
-- 🏛️ **Cultural Adaptations** - Adaptações culturais
-- ⚽ **Sport Variations** - Suporte a variações do futebol
-- 📏 **Metric Systems** - Sistemas de medidas regionais
-- 💰 **Multi-currency** - Suporte a múltiplas moedas
+#### **Localization**
+- 🌐 **Multi-language** - Multiple language support
+- 🏛️ **Cultural Adaptations** - Cultural adaptations
+- ⚽ **Sport Variations** - Soccer variation support
+- 📏 **Metric Systems** - Regional measurement systems
+- 💰 **Multi-currency** - Multiple currency support
 
 #### **Partnerships**
-- ⚽ **Football Federations** - Parcerias com federações
-- 🏟️ **Venue Networks** - Redes de quadras parceiras
-- 🎓 **Educational Institutions** - Parceria com escolas
-- 💼 **Corporate Programs** - Programas corporativos
-- 🏆 **Professional Clubs** - Parcerias com clubes
+- ⚽ **Football Federations** - Federation partnerships
+- 🏟️ **Venue Networks** - Partner court networks
+- 🎓 **Educational Institutions** - School partnerships
+- 💼 **Corporate Programs** - Corporate programs
+- 🏆 **Professional Clubs** - Club partnerships
 
 ---
 
-**Visão de Longo Prazo:** Tornar-se a **plataforma global definitiva** para gestão de futebol amador, conectando milhões de jogadores ao redor do mundo e democratizando o acesso a ferramentas profissionais de gestão esportiva.
+**Long-term Vision:** Become the **definitive global platform** for amateur soccer management, connecting millions of players worldwide and democratizing access to professional sports management tools.
 
-**Missão:** Organizar e potencializar a paixão pelo futebol através de tecnologia inovadora, dados precisos e experiências memoráveis. ⚽🚀
+**Mission:** Organize and enhance passion for soccer through innovative technology, accurate data, and memorable experiences. ⚽🚀
 
-## 🏃‍♂️ Como Executar
+## 🏃‍♂️ How to Run
 
 ```bash
-# Instalar dependências
+# Install dependencies
 npm install
 
-# Executar migrações
+# Run migrations
 npm run migration:run
 
-# Executar testes
+# Run tests
 npm test
 
-# Iniciar aplicação
+# Start application
 npm start
 
-# Modo desenvolvimento
+# Development mode
 npm run dev
 ```
 
-## 📝 Contribuição
+## 📝 Contributing
 
-1. Fork o projeto
-2. Crie sua branch (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -am 'Add nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create your branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+This project is under the MIT license. See the [LICENSE](LICENSE) file for more details.
 
 ---
 
-**Soccer Session Manager** - Organizando peladas com tecnologia! ⚽
+**Soccer Session Manager** - Organizing pickup games with technology! ⚽
