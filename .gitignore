@@ -1,0 +1,10 @@
+# Database files
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+
+# Keep data directory
+!data/.gitkeep
+
+/dist
+/node_modules

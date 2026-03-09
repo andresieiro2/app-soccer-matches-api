@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+
 console.log('🏈 Soccer Session Manager - API');
 console.log('✅ TypeScript configurado com sucesso!');
 

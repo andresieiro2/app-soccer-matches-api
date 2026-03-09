@@ -13,7 +13,7 @@
     "format:check": "prettier --check src/**/*.ts",
     "test": "jest",
     "test:watch": "jest --watch"
-},
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/andresieiro2/app-soccer-matches.git"
@@ -29,10 +29,16 @@
   "dependencies": {
     "@types/node": "^25.4.0",
     "nodemon": "^3.1.14",
+    "pg": "^8.20.0",
+    "reflect-metadata": "^0.2.2",
+    "sqlite3": "^5.1.7",
     "ts-node": "^10.9.2",
+    "typeorm": "^0.3.28",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@types/pg": "^8.18.0",
+    "@types/sqlite3": "^5.1.0",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
     "eslint": "^10.0.3",
