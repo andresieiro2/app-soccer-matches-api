@@ -52,7 +52,6 @@ export class Group extends DefaultEntity {
     return new Group(id, name, null, createdAt);
   }
 
-  // Valid Name Rule
   private static validateName(name: string): void {
     if (!name || name.trim().length === 0) {
       throw new Error('Group name cannot be empty');
@@ -68,5 +67,10 @@ export class Group extends DefaultEntity {
       this.players = [];
     }
     this.players.push(player);
+  }
+
+  removePlayer(player: Player): void {
+    if (!this.players) return;
+    this.players = this.players?.filter((p) => p.id !== player.id);
   }
 }

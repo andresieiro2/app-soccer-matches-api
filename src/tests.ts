@@ -46,8 +46,45 @@ async function testAddPlayer() {
       finalGroup?.players?.map((p) => ({ name: p.name, type: p.playerType }))
     );
 
-    // 5. Teste de erro - grupo inexistente
-    console.log('\n🚨 Testando erro - grupo inexistente...');
+    // 5. Testar deletePlayer
+    console.log('\n🗑️ Testando deletePlayer...');
+    const playerToDelete = finalGroup?.players?.[0];
+    if (playerToDelete) {
+      const groupAfterDelete = await groupRepo.deletePlayer(
+        savedGroup.id,
+        playerToDelete.id
+      );
+      console.log('✅ Player removido:', groupAfterDelete.players?.length);
+
+      // Verificar se player foi removido
+      const groupAfterDeletion = await groupRepo.findById(savedGroup.id);
+      console.log(
+        '- Players restantes:',
+        groupAfterDeletion?.players?.map((p) => ({
+          name: p.name,
+          type: p.playerType,
+        }))
+      );
+    }
+
+    // 6. Teste de erro deletePlayer - player inexistente
+    console.log('\n🚨 Testando erro deletePlayer - player inexistente...');
+    try {
+      await groupRepo.deletePlayer(savedGroup.id, 'invalid-player-id');
+    } catch (error: any) {
+      console.log('✅ Erro capturado corretamente:', error.message);
+    }
+
+    // 7. Teste de erro deletePlayer - grupo inexistente
+    console.log('\n🚨 Testando erro deletePlayer - grupo inexistente...');
+    try {
+      await groupRepo.deletePlayer('invalid-group-id', 'some-player-id');
+    } catch (error: any) {
+      console.log('✅ Erro capturado corretamente:', error.message);
+    }
+
+    // 8. Teste de erro addPlayer - grupo inexistente
+    console.log('\n🚨 Testando erro addPlayer - grupo inexistente...');
     try {
       await groupRepo.addPlayer(
         'invalid-id',

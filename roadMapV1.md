@@ -15,10 +15,8 @@
 
 ### **Gestão de Jogadores:**
 
-- ❌ `addPlayer(groupId: string, playerName: string): Promise<GroupPlayer>`
-- ❌ `removePlayer(groupId: string, playerId: string): Promise<void>`
-- ❌ `getPlayers(groupId: string): Promise<GroupPlayer[]>`
-- ❌ `findPlayerByName(groupId: string, name: string): Promise<GroupPlayer | null>`
+- ✅ `addPlayer(groupId: string, playerName: string): Promise<GroupPlayer>`
+- ✅ `removePlayer(groupId: string, playerId: string): Promise<void>`
 
 ### **Gestão de Configurações:**
 
