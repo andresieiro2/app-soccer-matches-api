@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { MatchEventType } from '../enums';
 import { Match } from './Match';
-import { SessionPlayer } from './SessionPlayer';
+import { Player } from './Player';
 import { DefaultEntity } from './DefaultEntity';
 
 @Entity('match_events')
@@ -14,9 +14,9 @@ export class MatchEvent extends DefaultEntity {
 
   @Column({
     type: 'uuid',
-    name: 'session_player_id',
+    name: 'player_id',
   })
-  public readonly sessionPlayerId: string;
+  public readonly playerId: string;
 
   @Column({
     type: 'varchar',
@@ -30,23 +30,20 @@ export class MatchEvent extends DefaultEntity {
   @JoinColumn({ name: 'match_id' })
   public match?: Match;
 
-  @ManyToOne(
-    () => SessionPlayer,
-    (sessionPlayer: SessionPlayer) => sessionPlayer.events
-  )
-  @JoinColumn({ name: 'session_player_id' })
-  public sessionPlayer?: SessionPlayer;
+  @ManyToOne(() => Player, (player: Player) => player.events)
+  @JoinColumn({ name: 'player_id' })
+  public player?: Player;
 
   private constructor(
     id: string,
     matchId: string,
-    sessionPlayerId: string,
+    playerId: string,
     eventType: MatchEventType,
     createdAt: Date
   ) {
     super(id, createdAt);
     this.matchId = matchId;
-    this.sessionPlayerId = sessionPlayerId;
+    this.playerId = playerId;
     this.eventType = eventType;
   }
 

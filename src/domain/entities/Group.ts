@@ -1,8 +1,8 @@
-import { Entity, Column, OneToMany } from 'typeorm';
-import { GroupPlayer } from './GroupPlayer';
+import { Entity, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { GroupSettings } from './GroupSettings';
 import { Session } from './Session';
 import { DefaultEntity } from './DefaultEntity';
+import { Player } from './Player';
 
 @Entity('groups')
 export class Group extends DefaultEntity {
@@ -13,19 +13,34 @@ export class Group extends DefaultEntity {
   })
   public readonly name: string;
 
-  // Relationships
-  @OneToMany(() => GroupPlayer, (groupPlayer: GroupPlayer) => groupPlayer.group)
-  public players?: GroupPlayer[];
+  @Column({
+    type: 'uuid',
+    name: 'settings_id',
+    nullable: true,
+    default: null,
+  })
+  public readonly settings_id: string | null;
 
-  @OneToMany(() => GroupSettings, (settings: GroupSettings) => settings.group)
-  public settings?: GroupSettings[];
+  // Relationships
+  @OneToOne(() => GroupSettings, (settings: GroupSettings) => settings.group)
+  @JoinColumn({ name: 'settings_id' })
+  public settings?: GroupSettings;
 
   @OneToMany(() => Session, (session: Session) => session.group)
   public sessions?: Session[];
 
-  private constructor(id: string, name: string, createdAt: Date) {
+  @OneToMany(() => Player, (player: Player) => player.group)
+  public players?: Player[];
+
+  private constructor(
+    id: string,
+    name: string,
+    settings_id: string | null,
+    createdAt: Date
+  ) {
     super(id, createdAt);
     this.name = name;
+    this.settings_id = settings_id;
   }
 
   static create(name: string): Group {
@@ -34,7 +49,7 @@ export class Group extends DefaultEntity {
     const id = crypto.randomUUID();
     const createdAt = new Date();
 
-    return new Group(id, name, createdAt);
+    return new Group(id, name, null, createdAt);
   }
 
   // Valid Name Rule
@@ -46,5 +61,12 @@ export class Group extends DefaultEntity {
     if (name.length > 25) {
       throw new Error('Group name cannot exceed 25 characters');
     }
+  }
+
+  addPlayer(player: Player): void {
+    if (!this.players) {
+      this.players = [];
+    }
+    this.players.push(player);
   }
 }

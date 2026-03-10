@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { DrawResult } from '../enums';
 import { Group } from './Group';
 import { DefaultEntity } from './DefaultEntity';
@@ -51,7 +51,7 @@ export class GroupSettings extends DefaultEntity {
   public readonly teamSize: number;
 
   // Relationships
-  @ManyToOne(() => Group, (group: Group) => group.settings)
+  @OneToOne(() => Group, (group: Group) => group.settings)
   @JoinColumn({ name: 'group_id' })
   public group?: Group;
 

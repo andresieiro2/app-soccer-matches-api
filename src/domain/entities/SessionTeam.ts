@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Session } from './Session';
-import { SessionPlayer } from './SessionPlayer';
+import { Player } from './Player';
 import { Match } from './Match';
 import { DefaultEntity } from './DefaultEntity';
 
@@ -37,11 +37,8 @@ export class SessionTeam extends DefaultEntity {
   @JoinColumn({ name: 'session_id' })
   public session?: Session;
 
-  @OneToMany(
-    () => SessionPlayer,
-    (sessionPlayer: SessionPlayer) => sessionPlayer.team
-  )
-  public players?: SessionPlayer[];
+  @OneToMany(() => Player, (Player: Player) => Player.team)
+  public players?: Player[];
 
   @OneToMany(() => Match, (match: Match) => match.homeTeam)
   public homeMatches?: Match[];

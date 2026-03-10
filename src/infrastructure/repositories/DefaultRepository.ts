@@ -1,4 +1,9 @@
-import { Repository, ObjectLiteral, EntityTarget } from 'typeorm';
+import {
+  Repository,
+  ObjectLiteral,
+  EntityTarget,
+  EntityManager,
+} from 'typeorm';
 import { AppDataSource } from '../database/DataSource';
 import { IDefaultRepository } from '../../domain/interfaces/repositories';
 
@@ -25,5 +30,19 @@ export class DefaultRepository<
 
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
+  }
+
+  async useTransaction<R>(
+    callback: (manager: EntityManager) => Promise<R>
+  ): Promise<R> {
+    return await this.repository.manager.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          return await callback(transactionalEntityManager);
+        } catch (error: any) {
+          throw new Error(`Failed to run transaction: ${error.message}`);
+        }
+      }
+    );
   }
 }

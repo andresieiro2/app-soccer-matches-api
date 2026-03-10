@@ -9,7 +9,7 @@ import {
 import { DrawResult } from '../enums';
 import { Group } from './Group';
 import { SessionTeam } from './SessionTeam';
-import { SessionPlayer } from './SessionPlayer';
+import { Player } from './Player';
 import { Match } from './Match';
 import { DefaultEntity } from './DefaultEntity';
 
@@ -80,11 +80,8 @@ export class Session extends DefaultEntity {
   )
   public teams?: SessionTeam[];
 
-  @OneToMany(
-    () => SessionPlayer,
-    (sessionPlayer: SessionPlayer) => sessionPlayer.session
-  )
-  public players?: SessionPlayer[];
+  @OneToMany(() => Player, (Player: Player) => Player.session)
+  public players?: Player[];
 
   @OneToMany(() => Match, (match: Match) => match.session)
   public matches?: Match[];
