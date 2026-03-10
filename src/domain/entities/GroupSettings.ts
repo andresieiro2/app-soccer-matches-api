@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
+import { Entity, Column, JoinColumn, OneToOne } from 'typeorm';
 import { DrawResult } from '../enums';
 import { Group } from './Group';
 import { DefaultEntity } from './DefaultEntity';
