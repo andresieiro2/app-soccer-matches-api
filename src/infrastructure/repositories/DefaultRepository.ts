@@ -35,14 +35,6 @@ export class DefaultRepository<
   async useTransaction<R>(
     callback: (manager: EntityManager) => Promise<R>
   ): Promise<R> {
-    return await this.repository.manager.transaction(
-      async (transactionalEntityManager) => {
-        try {
-          return await callback(transactionalEntityManager);
-        } catch (error: any) {
-          throw new Error(`Failed to run transaction: ${error.message}`);
-        }
-      }
-    );
+    return this.repository.manager.transaction(callback);
   }
 }

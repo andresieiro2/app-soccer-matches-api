@@ -16,7 +16,7 @@ export class GroupRepository
     playerName: string,
     playerType: PlayerType
   ): Promise<Group> {
-    return await this.useTransaction(async (transaction) => {
+    return this.useTransaction(async (transaction) => {
       const group = await transaction.findOne(Group, {
         where: { id: groupId },
         relations: ['players'],
@@ -24,21 +24,17 @@ export class GroupRepository
 
       if (!group) throw new Error('Group not found.');
 
-      try {
-        const player = Player.create(group.id, playerName, playerType);
-        const savedPlayer = await transaction.save(Player, player);
+      const player = Player.create(group.id, playerName, playerType);
+      const savedPlayer = await transaction.save(Player, player);
 
-        group.addPlayer(savedPlayer);
+      group.addPlayer(savedPlayer);
 
-        return await transaction.save(Group, group);
-      } catch (error: any) {
-        throw new Error(`Failed to add player: ${error.message}`);
-      }
+      return await transaction.save(Group, group);
     });
   }
 
   async deletePlayer(groupId: string, playerId: string): Promise<Group> {
-    return await this.useTransaction(async (transaction) => {
+    return this.useTransaction(async (transaction) => {
       const group = await transaction.findOne(Group, {
         where: { id: groupId },
         relations: ['players'],
@@ -56,15 +52,11 @@ export class GroupRepository
         throw new Error('Player does not belong to this group.');
       }
 
-      try {
-        group.removePlayer(player);
+      group.removePlayer(player);
 
-        await transaction.delete(Player, player.id);
+      await transaction.delete(Player, player.id);
 
-        return await transaction.save(Group, group);
-      } catch (error: any) {
-        throw new Error(`Failed to remove player: ${error.message}`);
-      }
+      return await transaction.save(Group, group);
     });
   }
 }
