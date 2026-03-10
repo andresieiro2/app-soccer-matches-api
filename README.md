@@ -45,41 +45,49 @@ src/
 ### Core Entities
 
 #### Group
+
 - **Purpose**: Manages soccer groups and their settings
 - **Key Fields**: name, description, isActive, createdAt
 - **Relations**: One-to-Many with GroupPlayer, GroupSettings, Session
 
 #### GroupPlayer
+
 - **Purpose**: Player-Group membership with join dates
 - **Key Fields**: playerId, playerName, joinedAt
 - **Relations**: Many-to-One with Group
 
 #### GroupSettings
+
 - **Purpose**: Configurable rules per group
 - **Key Fields**: maxPlayersPerTeam, sessionDuration, allowDraws
 - **Relations**: Many-to-One with Group
 
 #### Session
+
 - **Purpose**: Individual soccer sessions/events
 - **Key Fields**: date, location, duration, status
 - **Relations**: Many-to-One with Group, One-to-Many with SessionTeam, Match
 
 #### SessionTeam
+
 - **Purpose**: Team formations for each session
 - **Key Fields**: teamName, teamColor (hex validation)
 - **Relations**: Many-to-One with Session, One-to-Many with SessionPlayer
 
 #### SessionPlayer
+
 - **Purpose**: Player assignments to teams
 - **Key Fields**: playerType (goalkeeper/field), isActive
 - **Relations**: Many-to-One with SessionTeam
 
 #### Match
+
 - **Purpose**: Individual matches between teams
 - **Key Fields**: startTime, endTime, team1Score, team2Score
 - **Relations**: Many-to-One with Session, One-to-Many with MatchEvent
 
 #### MatchEvent
+
 - **Purpose**: Events during matches (goals, cards, etc.)
 - **Key Fields**: eventType, minute, playerId, description
 - **Relations**: Many-to-One with Match
@@ -95,11 +103,13 @@ src/
 ## 🗄 Database Configuration
 
 ### Environment-Based Setup
+
 - **Development**: SQLite database (`database.sqlite`)
 - **Production**: PostgreSQL with environment variables
 - **Auto-switching**: Based on `NODE_ENV` variable
 
 ### Environment Variables (Production)
+
 ```env
 DB_HOST=your-host
 DB_PORT=5432
@@ -109,6 +119,7 @@ DB_DATABASE=soccer_sessions
 ```
 
 ### TypeORM Features
+
 - Entity auto-discovery from `src/domain/entities`
 - Synchronization enabled in development
 - Logging enabled in development
@@ -152,17 +163,20 @@ yarn test:db
 ## ⚙️ Configuration
 
 ### TypeScript
+
 - **Target**: ES2022 with CommonJS modules
 - **Strict Mode**: Enabled for type safety
 - **Decorators**: Experimental support for TypeORM
 - **Source Maps**: Enabled for debugging
 
 ### ESLint (Flat Config)
+
 - **Parser**: @typescript-eslint/parser
 - **Rules**: Recommended TypeScript and Node.js rules
 - **Globals**: Node.js environment
 
 ### Prettier
+
 - **Semi**: false (no semicolons)
 - **Single Quotes**: true
 - **Tab Width**: 2 spaces
@@ -172,6 +186,7 @@ yarn test:db
 ### ✅ Completed Phases
 
 #### Phase A: Project Foundation
+
 - ✅ Node.js 25.6 setup with Yarn
 - ✅ TypeScript configuration with strict mode
 - ✅ ESLint flat config (v10 compatible)
@@ -179,6 +194,7 @@ yarn test:db
 - ✅ VS Code settings optimization
 
 #### Phase B: Domain Core
+
 - ✅ 8 complete entities with TypeORM decorators
 - ✅ Full relationship mapping (One-to-Many, Many-to-One)
 - ✅ 3 enums with proper exports
@@ -186,6 +202,7 @@ yarn test:db
 - ✅ Character limits and hex color validation
 
 #### Phase C: Database Infrastructure
+
 - ✅ Dual database support (SQLite/PostgreSQL)
 - ✅ Environment-based configuration
 - ✅ TypeORM DataSource setup
@@ -195,16 +212,19 @@ yarn test:db
 ### 🔄 Next Phases (Planned)
 
 #### Phase D: Repository Pattern
+
 - Repository interfaces and implementations
 - Data access layer abstraction
 - CRUD operations for all entities
 
 #### Phase E: Service Layer
+
 - Business logic implementation
 - Domain services and use cases
 - Validation and error handling
 
 #### Phase F: API Layer
+
 - Express.js REST endpoints
 - Request/response DTOs
 - Authentication and authorization
@@ -212,6 +232,7 @@ yarn test:db
 ## 🎯 Features
 
 This system manages:
+
 - ⚽ **Soccer Sessions**: Complete session lifecycle
 - 👥 **Dynamic Teams**: Flexible team formation
 - 👤 **Player Management**: Roles and participation tracking
@@ -223,7 +244,7 @@ This system manages:
 
 ```
 Group (1) ←→ (M) GroupPlayer
-Group (1) ←→ (M) GroupSettings  
+Group (1) ←→ (M) GroupSettings
 Group (1) ←→ (M) Session
 Session (1) ←→ (M) SessionTeam
 Session (1) ←→ (M) Match
@@ -233,4 +254,4 @@ Match (1) ←→ (M) MatchEvent
 
 ---
 
-*Database successfully configured and tested. Ready for Phase D: Repository implementation.*
+_Database successfully configured and tested. Ready for Phase D: Repository implementation._

@@ -1,8 +1,6 @@
 import {
   Entity,
-  PrimaryColumn,
   Column,
-  CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
@@ -12,12 +10,10 @@ import { DrawResult } from '../enums';
 import { Session } from './Session';
 import { SessionTeam } from './SessionTeam';
 import { MatchEvent } from './MatchEvent';
+import { DefaultEntity } from './DefaultEntity';
 
 @Entity('matches')
-export class Match {
-  @PrimaryColumn('uuid')
-  public readonly id: string;
-
+export class Match extends DefaultEntity {
   @Column({
     type: 'uuid',
     name: 'session_id',
@@ -28,7 +24,7 @@ export class Match {
     type: 'int',
     name: 'sequence_number',
   })
-  public readonly sequencvarcharber: number;
+  public readonly sequenceNumber: number;
 
   @Column({
     type: 'uuid',
@@ -59,16 +55,11 @@ export class Match {
   @Column({
     type: 'varchar',
     enum: DrawResult,
+    length: 20,
     name: 'draw_result',
     nullable: true,
   })
   public drawResult: DrawResult | null;
-
-  @CreateDateColumn({
-    type: 'datetime',
-    name: 'started_at',
-  })
-  public readonly startedAt: Date;
 
   @UpdateDateColumn({
     type: 'datetime',
@@ -78,59 +69,64 @@ export class Match {
   public endedAt: Date | null;
 
   // Relationships
-  @ManyToOne(() => Session, (session) => session.matches)
+  @ManyToOne(() => Session, (session: Session) => session.matches)
   @JoinColumn({ name: 'session_id' })
   public session?: Session;
 
-  @ManyToOne(() => SessionTeam, (sessionTeam) => sessionTeam.homeMatches)
+  @ManyToOne(
+    () => SessionTeam,
+    (sessionTeam: SessionTeam) => sessionTeam.homeMatches
+  )
   @JoinColumn({ name: 'home_team_id' })
   public homeTeam?: SessionTeam;
 
-  @ManyToOne(() => SessionTeam, (sessionTeam) => sessionTeam.challengerMatches)
+  @ManyToOne(
+    () => SessionTeam,
+    (sessionTeam: SessionTeam) => sessionTeam.challengerMatches
+  )
   @JoinColumn({ name: 'challenger_team_id' })
   public challengerTeam?: SessionTeam;
 
-  @OneToMany(() => MatchEvent, (matchEvent) => matchEvent.match)
+  @OneToMany(() => MatchEvent, (matchEvent: MatchEvent) => matchEvent.match)
   public events?: MatchEvent[];
 
   private constructor(
     id: string,
     sessionId: string,
-    sequencvarcharber: number,
+    sequenceNumber: number,
     homeTeamId: string,
     challengerTeamId: string,
-    startedAt: Date
+    createdAt: Date
   ) {
-    this.id = id;
+    super(id, createdAt);
     this.sessionId = sessionId;
-    this.sequencvarcharber = sequencvarcharber;
+    this.sequenceNumber = sequenceNumber;
     this.homeTeamId = homeTeamId;
     this.challengerTeamId = challengerTeamId;
     this.homeScore = 0;
     this.challengerScore = 0;
     this.drawResult = null;
-    this.startedAt = startedAt;
     this.endedAt = null;
   }
 
-  static create(
+  static save(
     sessionId: string,
-    sequencvarcharber: number,
+    sequenceNumber: number,
     homeTeamId: string,
     challengerTeamId: string
   ): Match {
     Match.validateTeamIds(homeTeamId, challengerTeamId);
 
     const id = crypto.randomUUID();
-    const startedAt = new Date();
+    const createdAt = new Date();
 
     return new Match(
       id,
       sessionId,
-      sequencvarcharber,
+      sequenceNumber,
       homeTeamId,
       challengerTeamId,
-      startedAt
+      createdAt
     );
   }
 

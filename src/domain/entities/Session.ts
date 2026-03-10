@@ -1,8 +1,6 @@
 import {
   Entity,
-  PrimaryColumn,
   Column,
-  CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
@@ -13,12 +11,10 @@ import { Group } from './Group';
 import { SessionTeam } from './SessionTeam';
 import { SessionPlayer } from './SessionPlayer';
 import { Match } from './Match';
+import { DefaultEntity } from './DefaultEntity';
 
 @Entity('sessions')
-export class Session {
-  @PrimaryColumn('uuid')
-  public readonly id: string;
-
+export class Session extends DefaultEntity {
   @Column({
     type: 'uuid',
     name: 'group_id',
@@ -49,6 +45,7 @@ export class Session {
   @Column({
     type: 'varchar',
     enum: DrawResult,
+    length: 20,
     name: 'draw_rule_snapshot',
   })
   public readonly drawRuleSnapshot: DrawResult;
@@ -66,12 +63,6 @@ export class Session {
   })
   public isActive: boolean;
 
-  @CreateDateColumn({
-    type: 'datetime',
-    name: 'created_at',
-  })
-  public readonly createdAt: Date;
-
   @UpdateDateColumn({
     type: 'datetime',
     name: 'ended_at',
@@ -79,17 +70,23 @@ export class Session {
   })
   public endedAt: Date | null;
 
-  @ManyToOne(() => Group, (group) => group.sessions)
+  @ManyToOne(() => Group, (group: Group) => group.sessions)
   @JoinColumn({ name: 'group_id' })
   public group?: Group;
 
-  @OneToMany(() => SessionTeam, (sessionTeam) => sessionTeam.session)
+  @OneToMany(
+    () => SessionTeam,
+    (sessionTeam: SessionTeam) => sessionTeam.session
+  )
   public teams?: SessionTeam[];
 
-  @OneToMany(() => SessionPlayer, (sessionPlayer) => sessionPlayer.session)
+  @OneToMany(
+    () => SessionPlayer,
+    (sessionPlayer: SessionPlayer) => sessionPlayer.session
+  )
   public players?: SessionPlayer[];
 
-  @OneToMany(() => Match, (match) => match.session)
+  @OneToMany(() => Match, (match: Match) => match.session)
   public matches?: Match[];
 
   private constructor(
@@ -102,7 +99,7 @@ export class Session {
     teamSizeSnapshot: number,
     createdAt: Date
   ) {
-    this.id = id;
+    super(id, createdAt);
     this.groupId = groupId;
     this.maxDurationSnapshot = maxDurationSnapshot;
     this.maxGoalsSnapshot = maxGoalsSnapshot;
@@ -111,7 +108,6 @@ export class Session {
     this.teamSizeSnapshot = teamSizeSnapshot;
     this.isActive = true;
     this.endedAt = null;
-    this.createdAt = createdAt;
   }
 
   static create(

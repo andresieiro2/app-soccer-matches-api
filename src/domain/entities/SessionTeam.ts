@@ -1,21 +1,11 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Session } from './Session';
 import { SessionPlayer } from './SessionPlayer';
 import { Match } from './Match';
+import { DefaultEntity } from './DefaultEntity';
 
 @Entity('session_teams')
-export class SessionTeam {
-  @PrimaryColumn('uuid')
-  public readonly id: string;
-
+export class SessionTeam extends DefaultEntity {
   @Column({
     type: 'uuid',
     name: 'session_id',
@@ -42,24 +32,21 @@ export class SessionTeam {
   })
   public queuePosition: number;
 
-  @CreateDateColumn({
-    type: 'datetime',
-    name: 'created_at',
-  })
-  public readonly createdAt: Date;
-
   // Relationships
-  @ManyToOne(() => Session, (session) => session.teams)
+  @ManyToOne(() => Session, (session: Session) => session.teams)
   @JoinColumn({ name: 'session_id' })
   public session?: Session;
 
-  @OneToMany(() => SessionPlayer, (sessionPlayer) => sessionPlayer.team)
+  @OneToMany(
+    () => SessionPlayer,
+    (sessionPlayer: SessionPlayer) => sessionPlayer.team
+  )
   public players?: SessionPlayer[];
 
-  @OneToMany(() => Match, (match) => match.homeTeam)
+  @OneToMany(() => Match, (match: Match) => match.homeTeam)
   public homeMatches?: Match[];
 
-  @OneToMany(() => Match, (match) => match.challengerTeam)
+  @OneToMany(() => Match, (match: Match) => match.challengerTeam)
   public challengerMatches?: Match[];
 
   private constructor(
@@ -70,12 +57,11 @@ export class SessionTeam {
     queuePosition: number,
     createdAt: Date
   ) {
-    this.id = id;
+    super(id, createdAt);
     this.sessionId = sessionId;
     this.teamName = teamName;
     this.color = color;
     this.queuePosition = queuePosition;
-    this.createdAt = createdAt;
   }
 
   static create(

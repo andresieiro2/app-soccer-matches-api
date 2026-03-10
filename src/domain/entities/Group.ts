@@ -1,19 +1,11 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  CreateDateColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { GroupPlayer } from './GroupPlayer';
 import { GroupSettings } from './GroupSettings';
 import { Session } from './Session';
+import { DefaultEntity } from './DefaultEntity';
 
 @Entity('groups')
-export class Group {
-  @PrimaryColumn('uuid')
-  public readonly id: string;
-
+export class Group extends DefaultEntity {
   @Column({
     type: 'varchar',
     length: 25,
@@ -21,29 +13,21 @@ export class Group {
   })
   public readonly name: string;
 
-  @CreateDateColumn({
-    type: 'datetime',
-    name: 'created_at',
-  })
-  public readonly createdAt: Date;
-
   // Relationships
-  @OneToMany(() => GroupPlayer, (groupPlayer) => groupPlayer.group)
+  @OneToMany(() => GroupPlayer, (groupPlayer: GroupPlayer) => groupPlayer.group)
   public players?: GroupPlayer[];
 
-  @OneToMany(() => GroupSettings, (settings) => settings.group)
+  @OneToMany(() => GroupSettings, (settings: GroupSettings) => settings.group)
   public settings?: GroupSettings[];
 
-  @OneToMany(() => Session, (session) => session.group)
+  @OneToMany(() => Session, (session: Session) => session.group)
   public sessions?: Session[];
 
   private constructor(id: string, name: string, createdAt: Date) {
-    this.id = id;
+    super(id, createdAt);
     this.name = name;
-    this.createdAt = createdAt;
   }
 
-  // Factory Create Method
   static create(name: string): Group {
     Group.validateName(name);
 

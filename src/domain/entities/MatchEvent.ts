@@ -1,20 +1,11 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { MatchEventType } from '../enums';
 import { Match } from './Match';
 import { SessionPlayer } from './SessionPlayer';
+import { DefaultEntity } from './DefaultEntity';
 
 @Entity('match_events')
-export class MatchEvent {
-  @PrimaryColumn('uuid')
-  public readonly id: string;
-
+export class MatchEvent extends DefaultEntity {
   @Column({
     type: 'uuid',
     name: 'match_id',
@@ -34,18 +25,15 @@ export class MatchEvent {
   })
   public readonly eventType: MatchEventType;
 
-  @CreateDateColumn({
-    type: 'datetime',
-    name: 'created_at',
-  })
-  public readonly createdAt: Date;
-
   // Relationships
-  @ManyToOne(() => Match, (match) => match.events)
+  @ManyToOne(() => Match, (match: Match) => match.events)
   @JoinColumn({ name: 'match_id' })
   public match?: Match;
 
-  @ManyToOne(() => SessionPlayer, (sessionPlayer) => sessionPlayer.events)
+  @ManyToOne(
+    () => SessionPlayer,
+    (sessionPlayer: SessionPlayer) => sessionPlayer.events
+  )
   @JoinColumn({ name: 'session_player_id' })
   public sessionPlayer?: SessionPlayer;
 
@@ -56,11 +44,10 @@ export class MatchEvent {
     eventType: MatchEventType,
     createdAt: Date
   ) {
-    this.id = id;
+    super(id, createdAt);
     this.matchId = matchId;
     this.sessionPlayerId = sessionPlayerId;
     this.eventType = eventType;
-    this.createdAt = createdAt;
   }
 
   static create(

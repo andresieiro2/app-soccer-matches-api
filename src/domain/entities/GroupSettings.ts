@@ -1,19 +1,10 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { DrawResult } from '../enums';
 import { Group } from './Group';
+import { DefaultEntity } from './DefaultEntity';
 
 @Entity('group_settings')
-export class GroupSettings {
-  @PrimaryColumn('uuid')
-  public readonly id: string;
-
+export class GroupSettings extends DefaultEntity {
   @Column({
     type: 'uuid',
     name: 'group_id',
@@ -45,6 +36,7 @@ export class GroupSettings {
 
   @Column({
     type: 'varchar',
+    length: 20,
     enum: DrawResult,
     name: 'draw_rule',
     default: DrawResult.HOME_WINS,
@@ -58,14 +50,8 @@ export class GroupSettings {
   })
   public readonly teamSize: number;
 
-  @CreateDateColumn({
-    type: 'datetime',
-    name: 'created_at',
-  })
-  public readonly createdAt: Date;
-
   // Relationships
-  @ManyToOne(() => Group, (group) => group.settings)
+  @ManyToOne(() => Group, (group: Group) => group.settings)
   @JoinColumn({ name: 'group_id' })
   public group?: Group;
 
@@ -79,14 +65,13 @@ export class GroupSettings {
     teamSize: number,
     createdAt: Date
   ) {
-    this.id = id;
+    super(id, createdAt);
     this.groupId = groupId;
     this.maxMatchDurationMinutes = maxMatchDurationMinutes;
     this.maxGoals = maxGoals;
     this.maxConsecutiveWins = maxConsecutiveWins;
     this.drawRule = drawRule;
     this.teamSize = teamSize;
-    this.createdAt = createdAt;
   }
 
   static create(

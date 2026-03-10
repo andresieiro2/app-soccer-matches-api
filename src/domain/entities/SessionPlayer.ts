@@ -1,23 +1,13 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { PlayerType } from '../enums';
 import { Session } from './Session';
 import { SessionTeam } from './SessionTeam';
 import { GroupPlayer } from './GroupPlayer';
 import { MatchEvent } from './MatchEvent';
+import { DefaultEntity } from './DefaultEntity';
 
 @Entity('session_players')
-export class SessionPlayer {
-  @PrimaryColumn('uuid')
-  public readonly id: string;
-
+export class SessionPlayer extends DefaultEntity {
   @Column({
     type: 'uuid',
     name: 'session_id',
@@ -52,18 +42,15 @@ export class SessionPlayer {
   })
   public readonly playerType: PlayerType;
 
-  @CreateDateColumn({
-    type: 'datetime',
-    name: 'created_at',
-  })
-  public readonly createdAt: Date;
-
   // Relationships
-  @ManyToOne(() => Session, (session) => session.players)
+  @ManyToOne(() => Session, (session: Session) => session.players)
   @JoinColumn({ name: 'session_id' })
   public session?: Session;
 
-  @ManyToOne(() => SessionTeam, (sessionTeam) => sessionTeam.players)
+  @ManyToOne(
+    () => SessionTeam,
+    (sessionTeam: SessionTeam) => sessionTeam.players
+  )
   @JoinColumn({ name: 'team_id' })
   public team?: SessionTeam;
 
@@ -71,7 +58,10 @@ export class SessionPlayer {
   @JoinColumn({ name: 'group_player_id' })
   public groupPlayer?: GroupPlayer;
 
-  @OneToMany(() => MatchEvent, (matchEvent) => matchEvent.sessionPlayer)
+  @OneToMany(
+    () => MatchEvent,
+    (matchEvent: MatchEvent) => matchEvent.sessionPlayer
+  )
   public events?: MatchEvent[];
 
   private constructor(
@@ -83,13 +73,12 @@ export class SessionPlayer {
     playerType: PlayerType,
     createdAt: Date
   ) {
-    this.id = id;
+    super(id, createdAt);
     this.sessionId = sessionId;
     this.teamId = teamId;
     this.groupPlayerId = groupPlayerId;
     this.fillPlayerName = fillPlayerName;
     this.playerType = playerType;
-    this.createdAt = createdAt;
   }
 
   // Create group player in session

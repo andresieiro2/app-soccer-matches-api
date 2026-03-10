@@ -1,18 +1,9 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Group } from './Group';
+import { DefaultEntity } from './DefaultEntity';
 
 @Entity('group_players')
-export class GroupPlayer {
-  @PrimaryColumn('uuid')
-  public readonly id: string;
-
+export class GroupPlayer extends DefaultEntity {
   @Column({
     type: 'uuid',
     name: 'group_id',
@@ -26,14 +17,8 @@ export class GroupPlayer {
   })
   public readonly name: string;
 
-  @CreateDateColumn({
-    type: 'datetime',
-    name: 'created_at',
-  })
-  public readonly createdAt: Date;
-
   // Relationships
-  @ManyToOne(() => Group, (group) => group.players)
+  @ManyToOne(() => Group, (group: Group) => group.players)
   @JoinColumn({ name: 'group_id' })
   public group?: Group;
 
@@ -43,10 +28,9 @@ export class GroupPlayer {
     name: string,
     createdAt: Date
   ) {
-    this.id = id;
+    super(id, createdAt);
     this.groupId = groupId;
     this.name = name;
-    this.createdAt = createdAt;
   }
 
   static create(groupId: string, name: string): GroupPlayer {
