@@ -20,7 +20,6 @@
 
 ### **Gestão de Configurações:**
 
-- ❌ `getSettings(groupId: string): Promise<GroupSettings>`
 - ❌ `updateSettings(groupId: string, settings: Partial<GroupSettings>): Promise<GroupSettings>`
 
 ### **Gestão de Sessões (overview):**

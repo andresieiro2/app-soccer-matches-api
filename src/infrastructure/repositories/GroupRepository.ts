@@ -8,7 +8,7 @@ export class GroupRepository
   implements IGroupRepository
 {
   constructor() {
-    super(Group);
+    super(Group, ['players', 'settings']);
   }
 
   async create(
@@ -74,6 +74,27 @@ export class GroupRepository
       await transaction.delete(Player, player.id);
 
       return await transaction.save(Group, group);
+    });
+  }
+
+  async updateSettings(
+    groupId: string,
+    settings: Partial<GroupSettings>
+  ): Promise<Group> {
+    return this.useTransaction(async (transaction) => {
+      const group = await transaction.findOne(Group, {
+        where: { id: groupId },
+        relations: ['settings'],
+      });
+
+      if (!group) throw new Error('Group not found.');
+      if (!group.settings) throw new Error('Group settings not found.');
+
+      Object.assign(group.settings, settings);
+
+      await transaction.save(GroupSettings, group.settings);
+
+      return group;
     });
   }
 }

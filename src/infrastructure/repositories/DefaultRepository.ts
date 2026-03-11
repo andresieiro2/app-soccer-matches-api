@@ -12,16 +12,24 @@ export class DefaultRepository<
 > implements IDefaultRepository<T> {
   protected repository: Repository<T>;
 
-  constructor(entity: EntityTarget<T>) {
+  private relations: string[] = [];
+
+  constructor(entity: EntityTarget<T>, relations: string[] = []) {
     this.repository = AppDataSource.getRepository(entity);
+    this.relations = relations;
   }
 
   async findById(id: string): Promise<T | null> {
-    return await this.repository.findOne({ where: { id } as any });
+    return await this.repository.findOne({
+      where: { id } as any,
+      relations: this.relations,
+    });
   }
 
   async findAll(): Promise<T[]> {
-    return await this.repository.find();
+    return await this.repository.find({
+      relations: this.relations,
+    });
   }
 
   async save(entity: T): Promise<T> {
