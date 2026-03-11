@@ -1,4 +1,4 @@
-import { Group, Player } from '../../domain/entities';
+import { Group, GroupSettings, Player } from '../../domain/entities';
 import { PlayerType } from '../../domain/enums';
 import { IGroupRepository } from '../../domain/interfaces/repositories';
 import { DefaultRepository } from './DefaultRepository';
@@ -9,6 +9,23 @@ export class GroupRepository
 {
   constructor() {
     super(Group);
+  }
+
+  async create(
+    name: string,
+    settings?: Partial<GroupSettings>
+  ): Promise<Group> {
+    return this.useTransaction(async (transaction) => {
+      let group = Group.create(name);
+      group = await transaction.save(Group, group);
+
+      let groupSettings = GroupSettings.create(group.id, settings);
+      groupSettings = await transaction.save(GroupSettings, groupSettings);
+
+      group.settings_id = groupSettings.id;
+
+      return await transaction.save(Group, group);
+    });
   }
 
   async addPlayer(
@@ -24,10 +41,10 @@ export class GroupRepository
 
       if (!group) throw new Error('Group not found.');
 
-      const player = Player.create(group.id, playerName, playerType);
-      const savedPlayer = await transaction.save(Player, player);
+      let player = Player.create(group.id, playerName, playerType);
+      player = await transaction.save(Player, player);
 
-      group.addPlayer(savedPlayer);
+      group.addPlayer(player);
 
       return await transaction.save(Group, group);
     });

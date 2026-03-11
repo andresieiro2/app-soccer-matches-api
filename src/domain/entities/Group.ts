@@ -19,7 +19,7 @@ export class Group extends DefaultEntity {
     nullable: true,
     default: null,
   })
-  public readonly settings_id: string | null;
+  public settings_id: string | null;
 
   // Relationships
   @OneToOne(() => GroupSettings, (settings: GroupSettings) => settings.group)
