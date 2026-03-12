@@ -6,7 +6,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { DrawResult } from '../enums';
+
 import { Group } from './Group';
 import { SessionTeam } from './SessionTeam';
 import { Player } from './Player';
@@ -22,39 +22,12 @@ export class Session extends DefaultEntity {
   public readonly groupId: string;
 
   @Column({
-    type: 'int',
-    name: 'max_duration_snapshot',
-    nullable: false,
-  })
-  public readonly maxDurationSnapshot: number;
-
-  @Column({
-    type: 'int',
-    name: 'max_goals_snapshot',
-    nullable: true,
-  })
-  public readonly maxGoalsSnapshot: number | null;
-
-  @Column({
-    type: 'int',
-    name: 'max_wins_snapshot',
-    nullable: true,
-  })
-  public readonly maxWinsSnapshot: number | null;
-
-  @Column({
     type: 'varchar',
-    enum: DrawResult,
-    length: 20,
-    name: 'draw_rule_snapshot',
-  })
-  public readonly drawRuleSnapshot: DrawResult;
 
-  @Column({
-    type: 'int',
-    name: 'team_size_snapshot',
+    length: 20,
+    name: 'name',
   })
-  public readonly teamSizeSnapshot: number;
+  public name: string;
 
   @Column({
     type: 'boolean',
@@ -89,47 +62,21 @@ export class Session extends DefaultEntity {
   private constructor(
     id: string,
     groupId: string,
-    maxDurationSnapshot: number,
-    maxGoalsSnapshot: number | null,
-    maxWinsSnapshot: number | null,
-    drawRuleSnapshot: DrawResult,
-    teamSizeSnapshot: number,
+    name: string,
     createdAt: Date
   ) {
     super(id, createdAt);
     this.groupId = groupId;
-    this.maxDurationSnapshot = maxDurationSnapshot;
-    this.maxGoalsSnapshot = maxGoalsSnapshot;
-    this.maxWinsSnapshot = maxWinsSnapshot;
-    this.drawRuleSnapshot = drawRuleSnapshot;
-    this.teamSizeSnapshot = teamSizeSnapshot;
+    this.name = name;
     this.isActive = true;
     this.endedAt = null;
   }
 
-  static create(
-    groupId: string,
-    groupSettings: {
-      maxMatchDurationMinutes: number;
-      maxGoals: number | null;
-      maxConsecutiveWins: number | null;
-      drawRule: DrawResult;
-      teamSize: number;
-    }
-  ): Session {
+  static create(groupId: string, name: string): Session {
     const id = crypto.randomUUID();
     const createdAt = new Date();
 
-    return new Session(
-      id,
-      groupId,
-      groupSettings.maxMatchDurationMinutes,
-      groupSettings.maxGoals,
-      groupSettings.maxConsecutiveWins,
-      groupSettings.drawRule,
-      groupSettings.teamSize,
-      createdAt
-    );
+    return new Session(id, groupId, name, createdAt);
   }
 
   endSession(): void {
@@ -139,5 +86,10 @@ export class Session extends DefaultEntity {
 
     this.isActive = false;
     this.endedAt = new Date();
+  }
+
+  removeTeam(teamId: string): void {
+    if (!this.teams) return;
+    this.teams = this.teams?.filter((t) => t.id !== teamId);
   }
 }

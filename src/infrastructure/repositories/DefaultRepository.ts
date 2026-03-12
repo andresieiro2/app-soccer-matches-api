@@ -12,7 +12,7 @@ export class DefaultRepository<
 > implements IDefaultRepository<T> {
   protected repository: Repository<T>;
 
-  private relations: string[] = [];
+  protected relations: string[] = [];
 
   constructor(entity: EntityTarget<T>, relations: string[] = []) {
     this.repository = AppDataSource.getRepository(entity);

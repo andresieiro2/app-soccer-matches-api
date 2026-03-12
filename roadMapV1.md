@@ -20,13 +20,12 @@
 
 ### **Gestão de Configurações:**
 
-- ❌ `updateSettings(groupId: string, settings: Partial<GroupSettings>): Promise<GroupSettings>`
+- ✅ `updateSettings(groupId: string, settings: Partial<GroupSettings>): Promise<GroupSettings>`
 
 ### **Gestão de Sessões (overview):**
 
-- ❌ `getSessions(groupId: string): Promise<Session[]>`
-- ❌ `getActiveSession(groupId: string): Promise<Session | null>`
-- ❌ `getSessionHistory(groupId: string): Promise<Session[]>`
+- ✅ `getSessions(groupId: string): Promise<Session[]>`
+- ✅ `getActiveSession(groupId: string): Promise<Session | null>`
 
 ---
 
@@ -36,7 +35,7 @@
 
 - ❌ `addTeam(sessionId: string, teamName: string, color: string): Promise<SessionTeam>`
 - ❌ `removeTeam(sessionId: string, teamId: string): Promise<void>`
-- ❌ `getTeams(sessionId: string): Promise<SessionTeam[]>`
+- ✅ `getTeams(sessionId: string): Promise<SessionTeam[]>`
 - ❌ `updateTeamQueue(sessionId: string, teamId: string, position: number): Promise<void>`
 
 ### **Gestão de Jogadores na Sessão:**

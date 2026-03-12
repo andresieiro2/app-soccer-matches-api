@@ -40,12 +40,6 @@ export class SessionTeam extends DefaultEntity {
   @OneToMany(() => Player, (Player: Player) => Player.team)
   public players?: Player[];
 
-  @OneToMany(() => Match, (match: Match) => match.homeTeam)
-  public homeMatches?: Match[];
-
-  @OneToMany(() => Match, (match: Match) => match.challengerTeam)
-  public challengerMatches?: Match[];
-
   private constructor(
     id: string,
     sessionId: string,
